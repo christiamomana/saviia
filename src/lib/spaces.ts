@@ -21,6 +21,8 @@ export interface SpaceDefinition {
   minAdvanceDays: number;
   /** Duración fija de cada turno reservable, en minutos. */
   slotMinutes: number;
+  /** Máximo de slots (horas) contiguas que se pueden seleccionar en una sola reserva. Por defecto 1. */
+  maxSlotsPerBooking?: number;
   /** Máximo de slots (horas) que un mismo residente puede reservar en un día. */
   maxSlotsPerBookingPerDay?: number;
   /** Máximo de reservas distintas por unidad/apartamento en un día. */
@@ -92,6 +94,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
     capacity: 6,
     minAdvanceDays: 0,
     slotMinutes: 60,
+    maxSlotsPerBooking: 4,
     maxSlotsPerBookingPerDay: 4,
     maxBookingsPerUnitPerDay: 2,
     schedule: {

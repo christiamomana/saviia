@@ -4,12 +4,18 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { validateBookingRequest, timeToMinutes, minutesToTime } from "@/lib/booking-rules";
+import {
+  validateBookingRequest,
+  expandBookingToSlots,
+  timeToMinutes,
+  minutesToTime,
+} from "@/lib/booking-rules";
 
 const createBookingSchema = z.object({
   spaceSlug: z.string().min(1),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  duration: z.coerce.number().int().min(1).max(24),
   partySize: z.coerce.number().int().min(1).max(20),
 });
 
@@ -32,12 +38,13 @@ export async function createBookingAction(
     spaceSlug: formData.get("spaceSlug"),
     date: formData.get("date"),
     startTime: formData.get("startTime"),
+    duration: formData.get("duration") ?? 1,
     partySize: formData.get("partySize") ?? 1,
   });
   if (!parsed.success) {
     return { error: "Datos de reserva inválidos." };
   }
-  const { spaceSlug, date, startTime, partySize } = parsed.data;
+  const { spaceSlug, date, startTime, duration, partySize } = parsed.data;
 
   const [resident, space] = await Promise.all([
     prisma.resident.findUnique({ where: { id: session.user.residentId } }),
@@ -48,46 +55,51 @@ export async function createBookingAction(
 
   const day = dateStringToUtcMidnight(date);
 
-  const [slotBookings, residentBookingsThatDay, unitBookingsThatDay] = await Promise.all([
-    prisma.booking.findMany({
-      where: { spaceId: space.id, date: day, startTime, status: "CONFIRMED" },
-      select: { partySize: true },
-    }),
-    prisma.booking.findMany({
-      where: { spaceId: space.id, date: day, residentId: resident.id, status: "CONFIRMED" },
-      select: { id: true },
-    }),
-    prisma.booking.findMany({
-      where: {
-        spaceId: space.id,
-        date: day,
-        status: "CONFIRMED",
-        resident: { unit: resident.unit },
-      },
-      select: { residentId: true },
-      distinct: ["residentId"],
-    }),
-  ]);
+  const dayBookings = await prisma.booking.findMany({
+    where: { spaceId: space.id, date: day, status: "CONFIRMED" },
+    select: {
+      startTime: true,
+      endTime: true,
+      partySize: true,
+      residentId: true,
+      resident: { select: { unit: true } },
+    },
+  });
 
-  const occupiedInSlot = slotBookings.reduce((sum, b) => sum + b.partySize, 0);
+  const occupiedByHour: Record<string, number> = {};
+  let residentSlotsBookedThatDay = 0;
+  const unitResidentIdsBookedThatDay = new Set<string>();
+  for (const b of dayBookings) {
+    const bookedSlots = expandBookingToSlots(b.startTime, b.endTime, space.slotMinutes);
+    for (const slot of bookedSlots) {
+      occupiedByHour[slot] = (occupiedByHour[slot] ?? 0) + b.partySize;
+    }
+    if (b.residentId === resident.id) {
+      residentSlotsBookedThatDay += bookedSlots.length;
+    }
+    if (b.resident.unit === resident.unit) {
+      unitResidentIdsBookedThatDay.add(b.residentId);
+    }
+  }
 
   const validation = validateBookingRequest({
     space,
     resident,
     date,
     startTime,
+    durationSlots: duration,
     partySize,
     now: new Date(),
-    occupiedInSlot,
-    residentSlotsBookedThatDay: residentBookingsThatDay.length,
-    unitResidentIdsBookedThatDay: unitBookingsThatDay.map((b) => b.residentId),
+    occupiedByHour,
+    residentSlotsBookedThatDay,
+    unitResidentIdsBookedThatDay: [...unitResidentIdsBookedThatDay],
   });
 
   if (!validation.ok) {
     return { error: validation.error };
   }
 
-  const endMinutes = timeToMinutes(startTime) + space.slotMinutes;
+  const endMinutes = timeToMinutes(startTime) + duration * space.slotMinutes;
   const endTime = minutesToTime(endMinutes);
 
   await prisma.booking.create({

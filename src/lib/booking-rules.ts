@@ -64,10 +64,54 @@ export function generateSlots(
   return slots;
 }
 
+/** The hourly slot start times a booking occupies, from its startTime up to (not including) its endTime. */
+export function expandBookingToSlots(
+  startTime: string,
+  endTime: string,
+  slotMinutes: number
+): string[] {
+  const slots: string[] = [];
+  let cursor = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+  while (cursor < end) {
+    slots.push(minutesToTime(cursor));
+    cursor += slotMinutes;
+  }
+  return slots;
+}
+
+/**
+ * Up to `durationSlots` consecutive bookable slots for `space` on `dateStr`,
+ * starting at `startTime`. Returns null if `startTime` isn't a valid slot, or
+ * if fewer than `durationSlots` slots follow it back-to-back (e.g. it would
+ * spill past closing time or into a later opening window).
+ */
+export function consecutiveSlots(
+  space: { scheduleJson: string; slotMinutes: number },
+  dateStr: string,
+  startTime: string,
+  durationSlots: number
+): string[] | null {
+  const validSlots = generateSlots(space, dateStr);
+  const startIndex = validSlots.indexOf(startTime);
+  if (startIndex === -1) return null;
+
+  const picked = validSlots.slice(startIndex, startIndex + durationSlots);
+  if (picked.length < durationSlots) return null;
+
+  for (let i = 1; i < picked.length; i++) {
+    if (timeToMinutes(picked[i]) !== timeToMinutes(picked[i - 1]) + space.slotMinutes) {
+      return null; // gap between windows (e.g. a closed lunch break)
+    }
+  }
+  return picked;
+}
+
 export interface SpaceRuleFields {
   capacity: number;
   minAdvanceDays: number;
   slotMinutes: number;
+  maxSlotsPerBooking: number | null;
   maxSlotsPerBookingPerDay: number | null;
   maxBookingsPerUnitPerDay: number | null;
   maxPeoplePerBooking: number | null;
@@ -86,11 +130,13 @@ export interface BookingValidationInput {
   resident: ResidentRuleFields;
   date: string; // "YYYY-MM-DD"
   startTime: string; // "HH:mm"
+  /** Horas (slots) contiguas solicitadas a partir de startTime. */
+  durationSlots: number;
   partySize: number;
   now: Date;
-  /** Suma de partySize de reservas CONFIRMED existentes para ese espacio/fecha/hora (de cualquier residente). */
-  occupiedInSlot: number;
-  /** Cantidad de slots ya reservados (CONFIRMED) por este mismo residente en ese espacio/fecha. */
+  /** Personas ya reservadas (CONFIRMED, de cualquier residente) por hora "HH:mm" para ese espacio/fecha. */
+  occupiedByHour: Record<string, number>;
+  /** Horas (slots) ya reservadas (CONFIRMED) por este mismo residente en ese espacio/fecha, sumando todas sus reservas. */
   residentSlotsBookedThatDay: number;
   /** IDs de residentes (distintos) de la misma unidad con al menos una reserva CONFIRMED ese espacio/fecha. */
   unitResidentIdsBookedThatDay: string[];
@@ -99,7 +145,7 @@ export interface BookingValidationInput {
 export type BookingValidationResult = { ok: true } | { ok: false; error: string };
 
 export function validateBookingRequest(input: BookingValidationInput): BookingValidationResult {
-  const { space, resident, date, startTime, partySize, now } = input;
+  const { space, resident, date, startTime, durationSlots, partySize, now } = input;
 
   if (resident.paymentStatus !== "AL_DIA") {
     return { ok: false, error: "Debes estar al día en el pago de administración para reservar." };
@@ -111,9 +157,27 @@ export function validateBookingRequest(input: BookingValidationInput): BookingVa
     };
   }
 
-  const validSlots = generateSlots(space, date);
-  if (!validSlots.includes(startTime)) {
-    return { ok: false, error: "El horario seleccionado no está disponible para este espacio." };
+  const maxSlotsPerBooking = space.maxSlotsPerBooking ?? 1;
+  if (durationSlots < 1 || durationSlots > maxSlotsPerBooking) {
+    const hours = (maxSlotsPerBooking * space.slotMinutes) / 60;
+    return {
+      ok: false,
+      error:
+        maxSlotsPerBooking > 1
+          ? `Puedes reservar entre 1 y ${hours} horas en una sola reserva.`
+          : "Este espacio se reserva por turnos de una hora.",
+    };
+  }
+
+  const requestedSlots = consecutiveSlots(space, date, startTime, durationSlots);
+  if (!requestedSlots) {
+    return {
+      ok: false,
+      error:
+        durationSlots > 1
+          ? "No hay suficientes horas consecutivas disponibles a partir de ese horario."
+          : "El horario seleccionado no está disponible para este espacio.",
+    };
   }
 
   const earliest = earliestBookableDate(now, space.minAdvanceDays);
@@ -136,17 +200,23 @@ export function validateBookingRequest(input: BookingValidationInput): BookingVa
       error: `Máximo ${space.maxPeoplePerBooking} personas por reserva en este espacio.`,
     };
   }
+  if (partySize > space.capacity) {
+    return { ok: false, error: `El aforo máximo de este espacio es de ${space.capacity} personas.` };
+  }
   if (partySize < 1) {
     return { ok: false, error: "El número de personas debe ser al menos 1." };
   }
 
-  if (input.occupiedInSlot + partySize > space.capacity) {
-    return { ok: false, error: "El aforo para ese horario ya está completo." };
+  for (const slot of requestedSlots) {
+    const occupied = input.occupiedByHour[slot] ?? 0;
+    if (occupied + partySize > space.capacity) {
+      return { ok: false, error: `El aforo para las ${slot} ya está completo.` };
+    }
   }
 
   if (
     space.maxSlotsPerBookingPerDay != null &&
-    input.residentSlotsBookedThatDay + 1 > space.maxSlotsPerBookingPerDay
+    input.residentSlotsBookedThatDay + durationSlots > space.maxSlotsPerBookingPerDay
   ) {
     const hours = (space.maxSlotsPerBookingPerDay * space.slotMinutes) / 60;
     return { ok: false, error: `Ya alcanzaste tu límite de ${hours} horas para este espacio hoy.` };

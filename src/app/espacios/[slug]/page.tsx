@@ -1,7 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { earliestBookableDate, generateSlots, calendarDay, currentTimeOfDay } from "@/lib/booking-rules";
+import {
+  earliestBookableDate,
+  generateSlots,
+  expandBookingToSlots,
+  calendarDay,
+  currentTimeOfDay,
+} from "@/lib/booking-rules";
 import { BookingForm } from "./booking-form";
 
 export default async function SpacePage({
@@ -31,11 +37,13 @@ export default async function SpacePage({
       date: new Date(`${date}T00:00:00.000Z`),
       status: "CONFIRMED",
     },
-    select: { startTime: true, partySize: true },
+    select: { startTime: true, endTime: true, partySize: true },
   });
   const occupiedByStart = new Map<string, number>();
   for (const b of dayBookings) {
-    occupiedByStart.set(b.startTime, (occupiedByStart.get(b.startTime) ?? 0) + b.partySize);
+    for (const slot of expandBookingToSlots(b.startTime, b.endTime, space.slotMinutes)) {
+      occupiedByStart.set(slot, (occupiedByStart.get(slot) ?? 0) + b.partySize);
+    }
   }
   const now = new Date();
   const isToday = date === calendarDay(now);
@@ -94,7 +102,10 @@ export default async function SpacePage({
             spaceSlug={space.slug}
             date={date}
             slots={slots}
+            capacity={space.capacity}
             maxPeoplePerBooking={space.maxPeoplePerBooking}
+            maxSlotsPerBooking={space.maxSlotsPerBooking}
+            slotMinutes={space.slotMinutes}
           />
         </div>
       </section>

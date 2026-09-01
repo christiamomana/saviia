@@ -45,6 +45,7 @@ model Space {
   capacity                  Int
   minAdvanceDays            Int
   slotMinutes               Int
+  maxSlotsPerBooking        Int?
   maxSlotsPerBookingPerDay  Int?
   maxBookingsPerUnitPerDay  Int?
   maxPeoplePerBooking       Int?
