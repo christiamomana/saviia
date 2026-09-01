@@ -23,6 +23,11 @@ export function earliestBookableDate(now: Date, minAdvanceDays: number): string 
   return format(addDays(today, minAdvanceDays), DATE_FORMAT);
 }
 
+/** Current time of day (America/Bogota) as "HH:mm", for filtering out same-day slots that already started. */
+export function currentTimeOfDay(now: Date): string {
+  return format(toZonedTime(now, TIME_ZONE), "HH:mm");
+}
+
 export function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -115,8 +120,14 @@ export function validateBookingRequest(input: BookingValidationInput): BookingVa
   if (date < earliest) {
     return {
       ok: false,
-      error: `Debes reservar con al menos ${space.minAdvanceDays} día(s) calendario de anticipación.`,
+      error:
+        space.minAdvanceDays > 0
+          ? `Debes reservar con al menos ${space.minAdvanceDays} día(s) calendario de anticipación.`
+          : "No puedes reservar en una fecha pasada.",
     };
+  }
+  if (date === calendarDay(now) && startTime <= currentTimeOfDay(now)) {
+    return { ok: false, error: "Ese horario ya pasó. Elige un horario más adelante." };
   }
 
   if (space.maxPeoplePerBooking != null && partySize > space.maxPeoplePerBooking) {

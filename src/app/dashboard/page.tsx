@@ -53,7 +53,9 @@ export default async function DashboardPage() {
             <h2 className="font-medium">{space.name}</h2>
             <p className="mt-1 text-sm text-gray-500">{space.description}</p>
             <p className="mt-3 text-xs text-gray-400">
-              Anticipación mínima: {space.minAdvanceDays} día(s)
+              {space.minAdvanceDays > 0
+                ? `Anticipación mínima: ${space.minAdvanceDays} día(s)`
+                : "Reserva el mismo día, según disponibilidad"}
             </p>
           </Link>
         ))}

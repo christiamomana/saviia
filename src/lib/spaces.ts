@@ -17,7 +17,7 @@ export interface SpaceDefinition {
   rules: string[];
   /** Aforo máximo simultáneo (placeholder editable por el admin; ver manual, remite a NSR-10). */
   capacity: number;
-  /** Anticipación mínima obligatoria, en días calendario. */
+  /** Anticipación mínima requerida, en días calendario (0 = se puede reservar el mismo día, sujeto a disponibilidad). */
   minAdvanceDays: number;
   /** Duración fija de cada turno reservable, en minutos. */
   slotMinutes: number;
@@ -37,7 +37,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
     description:
       "Zona común destinada exclusivamente al ejercicio físico, dotada de máquinas y pesas.",
     capacity: 15,
-    minAdvanceDays: 2,
+    minAdvanceDays: 0,
     slotMinutes: 60,
     schedule: {
       "1": [["14:00", "21:00"]],
@@ -49,7 +49,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
       "7": [["08:00", "12:00"], ["17:00", "21:00"]],
     },
     rules: [
-      "Reserva con mínimo 2 días calendario de anticipación; cancela con al menos 12 horas para liberar el cupo.",
+      "Puedes reservar el mismo día si hay disponibilidad; cancela con al menos 12 horas de anticipación si no vas a asistir, para liberar el cupo.",
       "La inasistencia reiterada sin cancelación (no-show) puede suspender temporalmente tu derecho a reservar.",
       "Usa ropa deportiva y tenis cerrados de suela no marcante; lleva toalla y botella de agua.",
       "Limpia y desinfecta cada máquina antes y después de usarla, y devuelve los implementos a su lugar.",
@@ -63,7 +63,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
     name: "Piscina",
     description: "Zona común recreativa de uso incluido en la cuota de administración.",
     capacity: 20,
-    minAdvanceDays: 2,
+    minAdvanceDays: 0,
     slotMinutes: 60,
     maxPeoplePerBooking: 4,
     schedule: {
@@ -90,7 +90,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
     description:
       "Espacio de trabajo compartido para uso individual o en pequeños grupos, con Wi-Fi gratuito.",
     capacity: 6,
-    minAdvanceDays: 1,
+    minAdvanceDays: 0,
     slotMinutes: 60,
     maxSlotsPerBookingPerDay: 4,
     maxBookingsPerUnitPerDay: 2,
@@ -118,7 +118,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
     description:
       "Espacio de recreación con ping pong, futbolín, consola y TV para residentes mayores de edad.",
     capacity: 10,
-    minAdvanceDays: 3,
+    minAdvanceDays: 0,
     slotMinutes: 60,
     schedule: {
       "2": [["08:00", "20:00"]],
@@ -141,7 +141,7 @@ export const SPACE_DEFS: SpaceDefinition[] = [
     name: "Salón de Juegos Infantil",
     description: "Espacio destinado al esparcimiento y recreación de los niños y niñas del conjunto.",
     capacity: 8,
-    minAdvanceDays: 1,
+    minAdvanceDays: 0,
     slotMinutes: 60,
     schedule: {
       "2": [["08:00", "20:00"]],

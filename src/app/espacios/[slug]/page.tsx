@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { earliestBookableDate, generateSlots } from "@/lib/booking-rules";
+import { earliestBookableDate, generateSlots, calendarDay, currentTimeOfDay } from "@/lib/booking-rules";
 import { BookingForm } from "./booking-form";
 
 export default async function SpacePage({
@@ -37,10 +37,14 @@ export default async function SpacePage({
   for (const b of dayBookings) {
     occupiedByStart.set(b.startTime, (occupiedByStart.get(b.startTime) ?? 0) + b.partySize);
   }
+  const now = new Date();
+  const isToday = date === calendarDay(now);
+  const nowTime = currentTimeOfDay(now);
   const slots = slotTimes.map((startTime) => {
     const occupied = occupiedByStart.get(startTime) ?? 0;
     const remaining = space.capacity - occupied;
-    return { startTime, remaining, available: remaining > 0 };
+    const alreadyPassed = isToday && startTime <= nowTime;
+    return { startTime, remaining, available: remaining > 0 && !alreadyPassed };
   });
 
   return (
@@ -80,7 +84,9 @@ export default async function SpacePage({
           </button>
         </form>
         <p className="mt-2 text-xs text-gray-400">
-          Anticipación mínima: {space.minAdvanceDays} día(s) calendario.
+          {space.minAdvanceDays > 0
+            ? `Anticipación mínima: ${space.minAdvanceDays} día(s) calendario.`
+            : "Puedes reservar el mismo día, sujeto a disponibilidad."}
         </p>
 
         <div className="mt-6">
