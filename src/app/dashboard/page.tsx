@@ -14,6 +14,8 @@ function formatDate(d: Date) {
   }).format(d);
 }
 
+const ACCENT_COLORS = ["bg-saviia-gold", "bg-saviia-coral", "bg-saviia-terracotta", "bg-saviia-purple"];
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.residentId) redirect("/login");
@@ -36,41 +38,44 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
       {resident.paymentStatus === "MORA" && (
-        <div className="mb-6 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Tu unidad figura en mora con la administración. Puedes ver los espacios, pero no
           podrás reservar hasta normalizar tu estado de cuenta.
         </div>
       )}
 
-      <h1 className="text-xl font-semibold">Espacios comunes</h1>
+      <h1 className="text-xl font-semibold text-saviia-purple-dark">Espacios comunes</h1>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {SPACE_DEFS.map((space) => (
+        {SPACE_DEFS.map((space, i) => (
           <Link
             key={space.slug}
             href={`/espacios/${space.slug}`}
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:border-gray-300 hover:shadow"
+            className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
-            <h2 className="font-medium">{space.name}</h2>
-            <p className="mt-1 text-sm text-gray-500">{space.description}</p>
-            <p className="mt-3 text-xs text-gray-400">
-              {space.minAdvanceDays > 0
-                ? `Anticipación mínima: ${space.minAdvanceDays} día(s)`
-                : "Reserva el mismo día, según disponibilidad"}
-            </p>
+            <div className={`h-1.5 w-full ${ACCENT_COLORS[i % ACCENT_COLORS.length]}`} />
+            <div className="p-5">
+              <h2 className="font-medium text-saviia-purple-dark">{space.name}</h2>
+              <p className="mt-1 text-sm text-foreground/60">{space.description}</p>
+              <p className="mt-3 text-xs font-medium text-saviia-terracotta">
+                {space.minAdvanceDays > 0
+                  ? `Anticipación mínima: ${space.minAdvanceDays} día(s)`
+                  : "Reserva el mismo día, según disponibilidad"}
+              </p>
+            </div>
           </Link>
         ))}
       </div>
 
-      <h2 className="mt-10 text-xl font-semibold">Mis reservas</h2>
+      <h2 className="mt-10 text-xl font-semibold text-saviia-purple-dark">Mis reservas</h2>
       {upcomingBookings.length === 0 ? (
-        <p className="mt-2 text-sm text-gray-500">No tienes reservas próximas.</p>
+        <p className="mt-2 text-sm text-foreground/60">No tienes reservas próximas.</p>
       ) : (
-        <ul className="mt-4 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+        <ul className="mt-4 divide-y divide-black/5 overflow-hidden rounded-2xl border border-black/5 bg-white">
           {upcomingBookings.map((booking) => (
-            <li key={booking.id} className="flex items-center justify-between px-4 py-3">
+            <li key={booking.id} className="flex items-center justify-between px-5 py-4">
               <div>
-                <p className="font-medium">{booking.space.name}</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-medium text-saviia-purple-dark">{booking.space.name}</p>
+                <p className="text-sm text-foreground/60">
                   {formatDate(booking.date)} · {booking.startTime}–{booking.endTime}
                   {booking.partySize > 1 ? ` · ${booking.partySize} personas` : ""}
                 </p>
@@ -78,7 +83,7 @@ export default async function DashboardPage() {
               <form action={cancelBookingAction.bind(null, booking.id)}>
                 <button
                   type="submit"
-                  className="text-sm text-red-600 hover:text-red-800"
+                  className="rounded-full px-3 py-1 text-sm text-saviia-terracotta hover:bg-saviia-terracotta/10"
                 >
                   Cancelar
                 </button>

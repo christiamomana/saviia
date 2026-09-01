@@ -32,20 +32,20 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h1 className="text-xl font-semibold">Administración</h1>
+      <h1 className="text-xl font-semibold text-saviia-purple-dark">Administración</h1>
 
       <section className="mt-6">
-        <h2 className="text-sm font-semibold text-gray-700">Agregar residente</h2>
-        <div className="mt-2 rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="text-sm font-semibold text-saviia-purple-dark">Agregar residente</h2>
+        <div className="mt-2 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
           <AddResidentForm />
         </div>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold text-gray-700">
+        <h2 className="text-sm font-semibold text-saviia-purple-dark">
           Residentes ({residents.length})
         </h2>
-        <div className="mt-2 rounded-lg border border-gray-200 bg-white">
+        <div className="mt-2 overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
           {residents.map((resident) => (
             <ResidentRow key={resident.id} resident={resident} />
           ))}
@@ -53,27 +53,30 @@ export default async function AdminPage() {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold text-gray-700">
+        <h2 className="text-sm font-semibold text-saviia-purple-dark">
           Reservas próximas ({upcomingBookings.length})
         </h2>
-        <div className="mt-2 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
+        <div className="mt-2 divide-y divide-black/5 overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
           {upcomingBookings.length === 0 && (
-            <p className="px-4 py-3 text-sm text-gray-500">No hay reservas próximas.</p>
+            <p className="px-5 py-4 text-sm text-foreground/60">No hay reservas próximas.</p>
           )}
           {upcomingBookings.map((booking) => (
-            <div key={booking.id} className="flex items-center justify-between px-4 py-3">
+            <div key={booking.id} className="flex items-center justify-between px-5 py-4">
               <div>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-saviia-purple-dark">
                   {booking.space.name} · {formatDate(booking.date)} · {booking.startTime}–
                   {booking.endTime}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-foreground/60">
                   {booking.resident.name} (Apto {booking.resident.unit})
                   {booking.partySize > 1 ? ` · ${booking.partySize} personas` : ""}
                 </p>
               </div>
               <form action={cancelBookingAction.bind(null, booking.id)}>
-                <button type="submit" className="text-sm text-red-600 hover:text-red-800">
+                <button
+                  type="submit"
+                  className="rounded-full px-3 py-1 text-sm text-saviia-terracotta hover:bg-saviia-terracotta/10"
+                >
                   Cancelar
                 </button>
               </form>

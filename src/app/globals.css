@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf7f1;
+  --foreground: #3a3341;
 }
 
 @theme inline {
@@ -10,17 +10,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Paleta de marca Saviia, tomada del logo oficial (manuales de uso). */
+  --color-saviia-gold: #e3b556;
+  --color-saviia-coral: #e58f7a;
+  --color-saviia-terracotta: #cd6b46;
+  --color-saviia-purple: #6b5a8d;
+  --color-saviia-purple-dark: #4f4169;
+  --color-saviia-cream: #fbf7f1;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }

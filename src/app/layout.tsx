@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import "./globals.css";
@@ -27,23 +28,29 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+      <body className="min-h-full flex flex-col bg-saviia-cream text-foreground">
         {session && (
-          <header className="border-b border-gray-200 bg-white">
+          <header className="border-b border-black/5 bg-white/80 backdrop-blur">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-              <Link href="/dashboard" className="font-semibold">
-                Saviia PH
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <Image src="/logo.png" alt="Saviia" width={92} height={34} priority />
               </Link>
-              <nav className="flex items-center gap-4 text-sm">
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+              <nav className="flex items-center gap-5 text-sm">
+                <Link
+                  href="/dashboard"
+                  className="text-saviia-purple-dark/80 hover:text-saviia-purple-dark"
+                >
                   Mis reservas
                 </Link>
                 {session.user.role === "ADMIN" && (
-                  <Link href="/admin" className="text-gray-600 hover:text-gray-900">
+                  <Link
+                    href="/admin"
+                    className="text-saviia-purple-dark/80 hover:text-saviia-purple-dark"
+                  >
                     Administración
                   </Link>
                 )}
-                <span className="text-gray-400">
+                <span className="hidden text-saviia-purple-dark/50 sm:inline">
                   {session.user.name} · Apto {session.user.unit}
                 </span>
                 <form
@@ -52,7 +59,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                     await signOut({ redirectTo: "/login" });
                   }}
                 >
-                  <button type="submit" className="text-gray-600 hover:text-gray-900">
+                  <button
+                    type="submit"
+                    className="rounded-full border border-saviia-purple/30 px-3 py-1 text-saviia-purple-dark/80 hover:bg-saviia-purple/10"
+                  >
                     Salir
                   </button>
                 </form>

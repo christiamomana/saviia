@@ -49,22 +49,22 @@ export default async function SpacePage({
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-xl font-semibold">{space.name}</h1>
-      <p className="mt-1 text-sm text-gray-500">{space.description}</p>
+      <h1 className="text-xl font-semibold text-saviia-purple-dark">{space.name}</h1>
+      <p className="mt-1 text-sm text-foreground/60">{space.description}</p>
 
-      <section className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-gray-700">Reglas de uso</h2>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-600">
+      <section className="mt-6 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-saviia-purple-dark">Reglas de uso</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/70">
           {space.rulesSummary.split("\n").map((rule) => (
             <li key={rule}>{rule}</li>
           ))}
         </ul>
       </section>
 
-      <section className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
+      <section className="mt-6 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
         <form className="flex items-end gap-3" method="get">
           <div>
-            <label htmlFor="date" className="text-sm font-medium text-gray-700">
+            <label htmlFor="date" className="text-sm font-medium text-saviia-purple-dark">
               Fecha
             </label>
             <input
@@ -73,17 +73,17 @@ export default async function SpacePage({
               name="date"
               defaultValue={date}
               min={minDate}
-              className="mt-1 block rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+              className="mt-1 block rounded-lg border border-black/10 px-3 py-1.5 text-sm focus:border-saviia-purple focus:outline-none focus:ring-1 focus:ring-saviia-purple"
             />
           </div>
           <button
             type="submit"
-            className="rounded-md border border-gray-300 px-4 py-1.5 text-sm hover:bg-gray-50"
+            className="rounded-full border border-saviia-purple/30 px-4 py-1.5 text-sm text-saviia-purple-dark hover:bg-saviia-purple/10"
           >
             Ver disponibilidad
           </button>
         </form>
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-saviia-terracotta">
           {space.minAdvanceDays > 0
             ? `Anticipación mínima: ${space.minAdvanceDays} día(s) calendario.`
             : "Puedes reservar el mismo día, sujeto a disponibilidad."}

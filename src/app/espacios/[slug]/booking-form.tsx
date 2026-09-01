@@ -19,24 +19,24 @@ export function BookingForm({
   const [state, formAction, pending] = useActionState(createBookingAction, initialState);
 
   if (slots.length === 0) {
-    return <p className="text-sm text-gray-500">Este espacio está cerrado ese día.</p>;
+    return <p className="text-sm text-foreground/60">Este espacio está cerrado ese día.</p>;
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-5">
       <input type="hidden" name="spaceSlug" value={spaceSlug} />
       <input type="hidden" name="date" value={date} />
 
       <fieldset>
-        <legend className="text-sm font-medium text-gray-700">Horario</legend>
+        <legend className="text-sm font-medium text-saviia-purple-dark">Horario</legend>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {slots.map((slot) => (
             <label
               key={slot.startTime}
-              className={`flex cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-sm ${
+              className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm transition has-[:checked]:border-saviia-purple has-[:checked]:bg-saviia-purple has-[:checked]:text-white ${
                 slot.available
-                  ? "border-gray-300 hover:border-gray-400"
-                  : "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400"
+                  ? "border-black/10 hover:border-saviia-purple/40"
+                  : "cursor-not-allowed border-black/5 bg-black/[0.02] text-foreground/30"
               }`}
             >
               <input
@@ -55,7 +55,7 @@ export function BookingForm({
 
       {maxPeoplePerBooking != null && (
         <div>
-          <label htmlFor="partySize" className="text-sm font-medium text-gray-700">
+          <label htmlFor="partySize" className="text-sm font-medium text-saviia-purple-dark">
             Número de personas (máx. {maxPeoplePerBooking})
           </label>
           <input
@@ -65,17 +65,17 @@ export function BookingForm({
             min={1}
             max={maxPeoplePerBooking}
             defaultValue={1}
-            className="mt-1 block w-24 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="mt-1 block w-24 rounded-lg border border-black/10 px-3 py-1.5 text-sm focus:border-saviia-purple focus:outline-none focus:ring-1 focus:ring-saviia-purple"
           />
         </div>
       )}
       {maxPeoplePerBooking == null && <input type="hidden" name="partySize" value={1} />}
 
       {state.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
       )}
       {state.success && (
-        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
           ¡Reserva confirmada! La puedes ver en tu panel.
         </p>
       )}
@@ -83,7 +83,7 @@ export function BookingForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        className="rounded-full bg-saviia-purple px-5 py-2.5 text-sm font-medium text-white transition hover:bg-saviia-purple-dark disabled:opacity-50"
       >
         {pending ? "Reservando..." : "Reservar"}
       </button>
