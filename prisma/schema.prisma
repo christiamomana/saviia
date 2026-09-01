@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum ResidentRole {
+  RESIDENT
+  ADMIN
+}
+
+enum PaymentStatus {
+  AL_DIA
+  MORA
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+}
+
+model Resident {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  name             String
+  unit             String
+  role             ResidentRole  @default(RESIDENT)
+  paymentStatus    PaymentStatus @default(AL_DIA)
+  bookingSuspended Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  bookings         Booking[]
+}
+
+// Weekly opening hours + booking rules for a common space, seeded from the
+// official Manuales de Uso. See prisma/seed.ts for the values per espacio.
+model Space {
+  id                        String  @id @default(cuid())
+  slug                      String  @unique
+  name                      String
+  description               String
+  rulesSummary              String
+  capacity                  Int
+  minAdvanceDays            Int
+  slotMinutes               Int
+  maxSlotsPerBookingPerDay  Int?
+  maxBookingsPerUnitPerDay  Int?
+  maxPeoplePerBooking       Int?
+  // { "1": [["07:00","12:00"],["14:00","19:00"]], ... } keyed by ISO weekday (1=Mon..7=Sun)
+  scheduleJson              String
+  bookings                  Booking[]
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  spaceId    String
+  space      Space         @relation(fields: [spaceId], references: [id])
+  residentId String
+  resident   Resident      @relation(fields: [residentId], references: [id])
+  date       DateTime // calendar day (America/Bogota), time component zeroed
+  startTime  String // "HH:mm" in America/Bogota
+  endTime    String // "HH:mm" in America/Bogota
+  partySize  Int           @default(1)
+  status     BookingStatus @default(CONFIRMED)
+  createdAt  DateTime      @default(now())
+
+  @@index([spaceId, date])
+  @@index([residentId, date])
+}
