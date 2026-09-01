@@ -14,18 +14,20 @@ import { createClient } from "@libsql/client";
 loadEnv({ path: ".env.local" });
 loadEnv({ path: ".env" });
 
-const url = process.env.TURSO_DATABASE_URL;
-const authToken = process.env.TURSO_AUTH_TOKEN;
-if (!url || url.startsWith("file:")) {
-  throw new Error(
-    "TURSO_DATABASE_URL must point at a real Turso database (libsql://...) to run this script."
-  );
+function getTursoConfig(): { url: string; authToken?: string } {
+  const url = process.env.TURSO_DATABASE_URL;
+  if (!url || url.startsWith("file:")) {
+    throw new Error(
+      "TURSO_DATABASE_URL must point at a real Turso database (libsql://...) to run this script."
+    );
+  }
+  return { url, authToken: process.env.TURSO_AUTH_TOKEN };
 }
 
 const MIGRATIONS_DIR = join(__dirname, "..", "prisma", "migrations");
 
 async function main() {
-  const client = createClient({ url, authToken });
+  const client = createClient(getTursoConfig());
 
   await client.execute(`
     CREATE TABLE IF NOT EXISTS "_saviia_migrations" (
