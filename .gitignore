@@ -41,6 +41,10 @@ yarn-error.log*
 /prisma/dev.db
 /prisma/dev.db-journal
 
+# resident roster data (personal info: real names/emails) — never commit, run
+# scripts/import-residents.ts locally against the data file you have
+/scripts/residents-import.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

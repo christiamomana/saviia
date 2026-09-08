@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:turso": "tsx scripts/apply-turso-migrations.ts",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:import-residents": "tsx scripts/import-residents.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
