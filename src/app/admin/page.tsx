@@ -1,18 +1,11 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { cancelBookingAction } from "@/lib/actions/bookings";
+import { BookingsTable } from "@/components/bookings-table";
 import { AddResidentForm } from "./add-resident-form";
 import { ResidentRow } from "./resident-row";
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("es-CO", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    timeZone: "UTC",
-  }).format(d);
-}
 
 export default async function AdminPage() {
   const session = await auth();
@@ -53,36 +46,18 @@ export default async function AdminPage() {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold text-saviia-purple-dark">
-          Reservas próximas ({upcomingBookings.length})
-        </h2>
-        <div className="mt-2 divide-y divide-black/5 overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
-          {upcomingBookings.length === 0 && (
-            <p className="px-5 py-4 text-sm text-foreground/60">No hay reservas próximas.</p>
-          )}
-          {upcomingBookings.map((booking) => (
-            <div key={booking.id} className="flex items-center justify-between px-5 py-4">
-              <div>
-                <p className="text-sm font-medium text-saviia-purple-dark">
-                  {booking.space.name} · {formatDate(booking.date)} · {booking.startTime}–
-                  {booking.endTime}
-                </p>
-                <p className="text-xs text-foreground/60">
-                  {booking.resident.name} (Apto {booking.resident.unit})
-                  {booking.partySize > 1 ? ` · ${booking.partySize} personas` : ""}
-                </p>
-              </div>
-              <form action={cancelBookingAction.bind(null, booking.id)}>
-                <button
-                  type="submit"
-                  className="rounded-full px-3 py-1 text-sm text-saviia-terracotta hover:bg-saviia-terracotta/10"
-                >
-                  Cancelar
-                </button>
-              </form>
-            </div>
-          ))}
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-saviia-purple-dark">
+            Reservas próximas ({upcomingBookings.length})
+          </h2>
+          <Link
+            href="/admin/reservas"
+            className="text-sm text-saviia-purple-dark hover:underline"
+          >
+            Ver todas las reservas →
+          </Link>
         </div>
+        <BookingsTable bookings={upcomingBookings} cancelAction={cancelBookingAction} />
       </section>
     </main>
   );
